@@ -59,6 +59,15 @@ struct SymmetricMatrix:
 
         self.data.store(i, value)
 
+    fn dump(self) raises:
+        print_no_newline("[")
+        for i in range(self.rows):
+            print_no_newline("[")
+            for j in range(self.columns):
+                print_no_newline(String(self[i,j]), ", ")
+            print("],")
+        print("]")
+
     fn __del__(owned self):
         # free memory on end of lifetime
         self.data.free()
