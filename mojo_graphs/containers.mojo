@@ -43,6 +43,7 @@ struct AdjMatrix:
         self.rows = rows
         self.columns = cols
         self._numels = rows * cols
+        self._symmetric = symmetric
 
         if symmetric:
             self._memnumels = rows * (rows + 1) // 2
