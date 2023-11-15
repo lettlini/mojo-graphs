@@ -5,59 +5,74 @@ representations of graphs
 from memory import memset_zero
 
 
-fn sub2ind(M: SymmetricMatrix, i: Int, j: Int) raises -> Int:
-    """Calculates the linear index from subscript for a SymmetricMatrix."""
+fn sub2ind(M: AdjMatrix, i: Int, j: Int) raises -> Int:
+    """Calculates the linear index from subscript (i,j) for an AdjMatrix."""
     let linear_index: Int
 
     # check if subscript is valid
-    if i > M.rows - 1 or j > M.rows - 1:
+    if (i < 0 or i >= M.rows) or (j < 0 or j >= M.columns):
         raise Error("OutOfBoundsError")
 
-    if j > i:
-        linear_index = j + (i * M.rows - i * (i + 1) // 2)
     else:
-        linear_index = i + (j * M.rows - j * (j + 1) // 2)
+        if M.is_symmetric():
+            if j > i:
+                linear_index = j + (i * M.rows - i * (i + 1) // 2)
+            else:
+                linear_index = i + (j * M.rows - j * (j + 1) // 2)
+        else:
+            return i + M.rows * j
 
-    return linear_index
+        return linear_index
 
 
-struct SymmetricMatrix:
+struct AdjMatrix:
     """
-    Type for efficiently storing symmetric matrices saving memory by only
-    allocating memory for the lower triangular matrix.
+    Type for storing the adjacency matrix of a graph.
 
-    This type can be used for representing the adjacency matrix of simple graphs
+    If created as a symmetric matrix only the lower triangular matrix is stored in memory.
     """
 
-    var data: DTypePointer[DType.bool]
+    var _data: DTypePointer[DType.bool]
     var rows: Int
     var columns: Int
-    var num_elements: Int
+    var _memnumels: Int  # number of elements actually stored in memory
+    var _numels: Int  # number of ACCESSIBLE elements
+    var _symmetric: Bool
 
-    fn __init__(inout self, rows: Int):
-        self.num_elements = rows * (rows + 1) // 2
+    fn __init__(inout self, rows: Int, cols: Int, symmetric: Bool = False):
         self.rows = rows
-        self.columns = rows
-        self.data = DTypePointer[DType.bool].alloc(self.num_elements)
-        memset_zero(self.data, self.num_elements)
+        self.columns = cols
+        self._numels = rows * cols
+        self._symmetric = symmetric
+
+        if symmetric:
+            self._memnumels = rows * (rows + 1) // 2
+        else:
+            self._memnumels = rows * cols
+
+        self._data = DTypePointer[DType.bool].alloc(self._memnumels)
+        memset_zero(self._data, self._memnumels)
 
     fn __getitem__(self, i: Int, j: Int) raises -> Bool:
         return self[sub2ind(self, i, j)]
 
     fn __getitem__(self, i: Int) raises -> Bool:
-        if i > self.num_elements - 1:
+        if i > self._memnumels - 1:
             raise Error("OutOfBoundsError")
 
-        return self.data.load(i)
+        return self._data.load(i)
 
     fn __setitem__(self, i: Int, j: Int, value: Bool) raises:
         self[sub2ind(self, i, j)] = value
 
     fn __setitem__(self, i: Int, value: Bool) raises:
-        if i > self.num_elements - 1:
+        if i > self._memnumels - 1:
             raise Error("OutOfBoundsError")
 
-        self.data.store(i, value)
+        self._data.store(i, value)
+
+    fn is_symmetric(self) -> Bool:
+        return self._symmetric
 
     fn dump(self) raises:
         """Print values."""
@@ -81,8 +96,8 @@ struct SymmetricMatrix:
                 else:
                     if currentel:
                         print_no_newline(" ")
-                    print_no_newline(String(currentel) , ", ")
+                    print_no_newline(String(currentel), ", ")
 
     fn __del__(owned self):
         # free memory on end of lifetime
-        self.data.free()
+        self._data.free()
