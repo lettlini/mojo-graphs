@@ -1,1 +1,1 @@
-from .containers import SymmetricMatrix, sub2ind
+from .containers import AdjMatrix, sub2ind
