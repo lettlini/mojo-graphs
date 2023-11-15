@@ -37,8 +37,13 @@ fn test_sub2ind() raises:
     put_new_line()
 
 fn test_dump() raises:
-    let testMatrix: SymmetricMatrix = SymmetricMatrix(10)
+    let testMatrix: SymmetricMatrix = SymmetricMatrix(3)
     testMatrix.dump()
+    print()
+    testMatrix[1,1] = True
+    testMatrix[0,1] = True
+    testMatrix.dump()
+    print()
 
 fn main() raises:
     # run all unit tests
