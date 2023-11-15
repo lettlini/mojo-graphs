@@ -60,13 +60,28 @@ struct SymmetricMatrix:
         self.data.store(i, value)
 
     fn dump(self) raises:
+        """Print values."""
+        let maxchars: Int = 5
+        let currentel: Bool
+
         print_no_newline("[")
+
         for i in range(self.rows):
+            if i > 0:
+                print_no_newline(" ")
             print_no_newline("[")
             for j in range(self.columns):
-                print_no_newline(String(self[i,j]), ", ")
-            print("],")
-        print("]")
+                currentel = self[i, j]
+
+                if j == self.columns - 1:
+                    if i == self.rows - 1:
+                        print(currentel, "]]")
+                    else:
+                        print(currentel, "], ")
+                else:
+                    if currentel:
+                        print_no_newline(" ")
+                    print_no_newline(String(currentel) , ", ")
 
     fn __del__(owned self):
         # free memory on end of lifetime
